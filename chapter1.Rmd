@@ -11,3 +11,5 @@ date()
 ```
 The text continues here.
 
+My name is Marina and I am doing a PhD about **forest fires**. From this course, I expect to improve my skills with R. I registered in Github a few years ago but I have not used it since then. So I want to become familiar with it and be able to use it for future collaborations. This project is related to the course and contains the exercises that we will do during the next weeks,
+My respository: [link](https://github.com/mapello3/IODS-project)

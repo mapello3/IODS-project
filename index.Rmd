@@ -1,5 +1,6 @@
 ---
 title: "IODS course project"
+author: "Marina Peris Llopis"
 output:
   html_document:
     theme: cosmo
