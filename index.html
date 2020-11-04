@@ -451,7 +451,7 @@ summary {
 <pre class="r"><code># This is a so-called &quot;R chunk&quot; where you can write R code.
 
 date()</code></pre>
-<pre><code>## [1] &quot;Wed Oct 28 20:00:06 2020&quot;</code></pre>
+<pre><code>## [1] &quot;Wed Nov 04 19:37:02 2020&quot;</code></pre>
 <p>The text continues here.</p>
 <p>My name is Marina and I am doing a PhD about <strong>forest fires</strong>. From this course, I expect to improve my skills with R. I registered in Github a few years ago but I have not used it since then. So I want to become familiar with it and be able to use it for future collaborations. This project is related to the course and contains the exercises that we will do during the next weeks, My respository: <a href="https://github.com/mapello3/IODS-project">link</a></p>
 <hr />
@@ -464,8 +464,13 @@ date()</code></pre>
 <li>Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.</li>
 <li>Assume the reader has no previous knowledge of your data or the more advanced methods you are using.</li>
 </ul>
+<p>Exercise 2 consisted in two parts. First, the <strong>data wrangling</strong> part in which I prepared the data and created the necessary variables to be used for the second part of the exercise. Second, the <strong>analysis</strong> part, in which I used that data to perform a regression analysis.</p>
+<p>Linear regression assumes that there is a linear relationship between the dependent variables or predictors and the dependent variable or response. I built several Linear regression models, with the objective of explaining the points or marks of students according to different variables related to learning approaches. Therefore, my dependent variable or response was “Points”, and as independent variables I tried “attitude” “stra”, “surf”, “gender”, “age” and “deep”.</p>
+<p>The <strong>multiple regression</strong> models, in which I considered more than one explanatory variable (i.e. <em>my_model1</em>, <em>my_model2</em>, <em>my_model3</em> in the script) were no better than the <strong>simple regression model</strong> with only one explanatory variable. Except “attitude”, all the other variables included in the multiple regression models were non-significant. This means that those variables did not really help to explain “Points”. For this reason, I chose as my final model the one using only “attitude”, so <em>my_model4</em> in the script.</p>
+<p>According to that model, “attitude” is positively related to “Points”, in such a way that when the attitude of the students increased, the Points also increased (in a 1 to 3.5 proportion).The <strong>R2</strong> of the model was around 0.19, so the variance in the variable attitude explains about 19% of the variance in the variable points. As I see it, this model follows two of the general principles in modeling, simplicity and parsimony. It is possible to explain a lot of variance with only one variable.</p>
+<p>The next step was to check if the model met the <strong>assumptions</strong> of linear regression: Normality of the errors, Homoscedasticity and Independence. With this objective, I created 3 <strong>diagnostic plots</strong>. The first one, a Q-Q plot, which showed reasons to affirm that the errors were normally distributed. Second, the Residuals vs Fitted values plot, not showing any clear pattern of change, what indicates that there is not heteroscedasticity. Third, a Leverage vs Residuals plot, where it did not seem to be any observation pulling or influencing too(too) much the regression line.</p>
 <pre class="r"><code>date()</code></pre>
-<pre><code>## [1] &quot;Wed Oct 28 20:00:06 2020&quot;</code></pre>
+<pre><code>## [1] &quot;Wed Nov 04 19:37:02 2020&quot;</code></pre>
 <p>Here we go again…</p>
 <hr />
 <p>(more chapters to be added similarly as we proceed with the course!)</p>

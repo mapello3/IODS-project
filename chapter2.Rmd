@@ -1,10 +1,21 @@
-# Insert chapter 2 title here
+# Regression and model validation
 
 *Describe the work you have done this week and summarize your learning.*
 
 - Describe your work and results clearly. 
 - Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
 - Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
+
+Exercise 2 consisted in two parts. First, the **data wrangling** part in which I prepared the data and created the necessary variables to be used for the second part of the exercise. Second, the **analysis** part, in which I used that data to perform a regression analysis.
+
+Linear regression assumes that there is a linear relationship between the dependent variables or predictors and the dependent variable or response. I built several Linear regression models, with the objective of explaining the points or marks of students according to different variables related to learning approaches. Therefore, my dependent variable or response was "Points", and as independent variables I tried "attitude" "stra", "surf", "gender", "age" and "deep".
+
+The **multiple regression** models, in which I considered more than one explanatory variable (i.e. *my_model1*, *my_model2*, *my_model3* in the script) were no better than the **simple regression model** with only one explanatory variable. Except "attitude", all the other variables included in the multiple regression models were non-significant. This means that those variables did not really help to explain "Points". For this reason, I chose as my final model the one using only "attitude", so *my_model4* in the script.
+
+According to that model, "attitude" is positively related to "Points", in such a way that when the attitude of the students increased, the Points also increased (in a 1 to 3.5 proportion).The **R2** of the model was around 0.19, so the variance in the variable attitude explains about 19% of the variance in the variable points. As I see it, this model follows two of the general principles in modeling, simplicity and parsimony. It is possible to explain a lot of variance with only one variable.
+
+The next step was to check if the model met the **assumptions** of linear regression: Normality of the errors, Homoscedasticity and Independence. With this objective, I created 3 **diagnostic plots**. The first one, a Q-Q plot, which showed reasons to affirm that the errors were normally distributed. Second, the Residuals vs Fitted values plot, not showing any clear pattern of change, what indicates that there is not heteroscedasticity. Third, a Leverage vs Residuals plot, where it did not seem to be any observation pulling or influencing too(too) much the regression line.
+
 
 ```{r}
 date()
