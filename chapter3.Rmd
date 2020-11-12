@@ -1,0 +1,69 @@
+# Logistic regression
+#Exercise 3
+
+In exercise 3, I started importing into Rstudio a dataset about students achievement in secondary education of two Portuguese schools. The first part of the exercise consisted on data wrangling, with the objective of preparing the data for further analysis (see script *create_alc* in my data folder in my Github repository). The data wrangling included tasks like joining two datasets and combining duplicated answers.
+
+The final dataset, contains 35 variables and 382 observations. The variables are: "school","sex",        "age","address", "famsize", "Pstatus", "Medu", "Fedu", "Mjob", "Fjob", "reason","nursery","internet","guardian"   "traveltime", "studytime", "failures", "schoolsup", "famsup","paid", "activities", "higher", "romantic", "famrel","freetime", "goout","Dalc", "Walc","health","absences","G1", "G2","G3","alc_use", and "high_use".
+
+The idea was to propose potential variables that could explain the level of Alcohol Consumption among students. My hypothesis is that the variables *Sex*, *number of school absences* and *parent's cohabitation status* can influence alcohol consumption. I think that males have higher alcohol consumption than females (positive relationship), that a high number of school absences correlates positively with alcohol consumption, and that the status of parents can influence alcohol consumption (higher in families were parents do not cohabit).
+I checked graphically if there was any kind of correlation between those variables. For that, I created several plots.
+
+
+ ![](C:/Users/marina/Documents/repos/IODS-project/Rplot.png) 
+ ![](C:/Users/marina/Documents/repos/IODS-project/Absences_HighUse.png)
+
+Looking at the previous graph, my hypothesis about the influence of school absences on high/low alcohol use becomes stronger.It is true that there are not as many points in the upper right part of the graph as I expected.
+
+
+![](C:/Users/marina/Documents/repos/IODS-project/AlcUse_Sex.png)
+
+Checking the boxplot, also seems that males have a higher alcohol use than females.
+
+
+![](C:/Users/marina/Documents/repos/IODS-project/CrossTabulation1.png)
+
+
+To check the number of cases I performed a Cross tabulation with the variables *high_use* and *Pstatus*. The table shows that the number of students that consume high amounts of alcohol with parents living together (100) is higher than those whose parents live apart (12). In this case, there is an important difference in the number of students with parents cohabiting and with parents living apart, 344 versus 38.
+
+Next step was to develop a **logistic regression model**, which uses as a response a binary variable, which can only take two values. That variable was "high/low alcohol consumption".
+I developed two different models. The first one, considering Pstatus, absences and sex to explain high_alc and to prove my hypotheses. And the second one, without Pstatus. The reason was that Pstatus was non-significant in the first model, so I decided to remove it.
+
+
+![](C:/Users/marina/Documents/repos/IODS-project/Model1.png)
+
+According to Model1, absences and sex influence significantly and in a positive way the use of alcohol. The status of parents does not have a significant effect on use of alcohol. I was correct in two of the potential relationships (both coefficients positive and highly significant, indicating a positive influence), but not with Pstatus.
+
+
+![](C:/Users/marina/Documents/repos/IODS-project/Model2.png)
+
+
+The AIC is lower in Model2, what suggests that we can and it is good to simplify the model as we did (removing one variable).
+
+
+![](C:/Users/marina/Documents/repos/IODS-project/OR_CI.png)
+
+
+At the end, I decided to use *Model2* as my final model.I calculated the **odds ratios** and the **confidence intervals** for that model. The odds of *males* presenting high alcohol consumption are between 1.7 and 4.3 times the odds of *females*. The odds of students with school absences are lower, but still higher than those attending school (between 1.04 and 1.11).
+
+
+![](C:/Users/marina/Documents/repos/IODS-project/Probabilities.png)
+
+
+Later on, I calculated the **probabilites** of each student to present high/low alcohol consumption according to the model, as well as a comparison between observations and predictions (second table). According to that table, 89 students that in reality presented high alcohol consumption (TRUE) were predicted to have low alcohol consumption (FALSE) by the model.The predictions versus real values can be seen graphically below.
+
+
+![](C:/Users/marina/Documents/repos/IODS-project/probability.png)
+
+
+After that, I checked the accuracy of the model by using a **loss function**, which computes the average number of wrong predictions on the training data. The result was 0.251, which means that the proportion of incorrectly classified observations or error is around 25%.
+If we were guessing, for instance defining a probability of high alcohol consumption of 0 for each student, the error would be 0.293, higher than when using the calculated probabilities from the model.
+
+Finally, I performed a **10-fold cross validation** and I got an error with the testing data of 0.259. A bit higher than the error with the training data. This means that the predictive power of the model is lower when using the testing data.
+
+
+
+```{r}
+date()
+```
+
+
