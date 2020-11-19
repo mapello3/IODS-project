@@ -1,0 +1,112 @@
+# Clustering and classification
+
+
+In exercise 4 we are using a dataset which contains 506 observations of 14 variables, describing housing values of suburbs in Boston. For instance, it contains variables like crime rate by town, NO ppm, pupil-teacher ratio, etc.
+There are not categorical variables in the original dataset, only numeric and integer.
+
+```{r}
+require(MASS)
+data(Boston) 
+str(Boston)
+
+dim(Boston)
+```
+
+I first analyzed the possible relationships between the variables, as well as their **distributions**.
+None of the variables seem to strictly follow a normal distribution, *rm* (average number of rooms per dwelling) would be the closest one.
+According to the *Pearson correlation coefficient* shown in the plot, there are highly significant correlations between many variables. For example, indus-tax (+), tax-crim (+), medv-crim (-), etc.
+
+
+ ![](C:/Users/marina/Documents/repos/IODS-project/Rplot02.png) 
+I also created another **correlation plot**, which better shows correlations between variables. 
+
+```{r}
+require(corrplot)
+require(tidyverse)
+cor_matrix<-cor(Boston) %>% round(digits=2)
+corrplot(cor_matrix, method="circle")
+```
+
+```{r}
+summary(Boston)
+```
+
+In order to fit a linear discriminant analysis with our data, the considered variables need to be scaled so that they meet the assumption of constant variance. 
+
+I **scaled the data** by substracting the mean value to each observation and dividing by the standard deviation. The scaled data is quite different, as there are now negative values (minimum values of the variables) and smaller ranges (i.e. variable *zn*).
+
+```{r}
+boston_scaled <- scale(Boston)
+boston_scaled <- as.data.frame(boston_scaled)
+summary(boston_scaled)
+
+```
+
+**Linear discriminant analysis** is a classification method, with which we model a categorical target variable, *crime*, using all the other variables in the dataset as independent variables.
+
+
+```{r}
+bins <- quantile(boston_scaled$crim)
+crime <- cut(boston_scaled$crim, breaks = bins, include.lowest = TRUE, label=c("low", "med_low", "med_high", "high"))
+      boston_scaled <- dplyr::select(boston_scaled, -crim)
+      boston_scaled <- data.frame(boston_scaled, crime)
+      
+n <- nrow(boston_scaled)
+ind <- sample(n,  size = n * 0.8)
+train <- boston_scaled[ind,]
+lda.fit <- lda(crime~., data = train)
+lda.fit
+
+```
+According to the fitted **LDA**, the linear discriminant one (*LD1*) explains about 95% of the between group variance, whereas *LD2* and *LD3* explain less than 1% together.
+
+Next, there is a scatter plot of the linear discriminant 1 versus linear discriminant 2. Each color represents a different class and the arrows are the predictor variables, with different length and direction according to their coefficients.
+
+ ![](C:/Users/marina/Documents/repos/IODS-project/lda.fit.png) 
+
+After that, I calculated the **probabilities of new observations** (test data) to belong to each one of the classes previously defined.The results are shown in the following crosstabulation table:
+
+```{r}
+test <- boston_scaled[-ind,]
+      correct_classes <- test$crime
+      test <- dplyr::select(test, -crime)
+lda.pred <- predict(lda.fit, newdata = test)
+table(correct = correct_classes, predicted = lda.pred$class)
+
+```
+The table shows the number of observations correctly predicted by each class. For example, 29 observations were correctly predicted to be *high*, whereas 6 *med_low* observations were wrongly predicted to be in the class *med_high*.
+
+
+I also calculated the **Euclidean and Manhattan distance** between the variables on the scaled dataset. The following tables contain a summary of the pairwise distances of the observations.The mean Euclidean distance is smaller than the mean Manhattan distance. 
+
+```{r}
+      boston_standarized <- scale(Boston)
+      boston_standarized <- as.data.frame(boston_standarized)
+      
+dist_eu <- dist(boston_standarized)
+summary(dist_eu)
+
+dist_mh <- dist(boston_standarized, method = "manhattan")
+summary(dist_mh)
+
+```
+Next step was to apply the **k-means** algorithm on the dataset. The plot below is a visualization of the clusters obtained with this method.
+
+```{r}
+km <-kmeans(boston_standarized, centers = 3)
+pairs(boston_standarized[6:10], col = km$cluster)
+```
+
+Finally, I changed the number of clusters to 2, as those were the **optimal clusters** according to the changes in the total sum of squares within clusters.
+
+```{r}
+km2 <-kmeans(boston_standarized, centers = 2)
+pairs(boston_standarized[6:10], col = km2$cluster)
+```
+
+
+
+
+
+
+
