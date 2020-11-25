@@ -1,0 +1,163 @@
+# Dimensionality reduction techniques
+
+
+First, let´s load the packages used for the exercise.
+
+```{r}
+library(ggplot2)  
+library(GGally)
+library(corrplot)
+library(tidyverse)
+library(factoextra)
+library(FactoMineR)
+```
+
+
+In exercise 5 we are using a dataset which consists of records of variables used to calculate the Human Development Index in the 155 countries in the world, such as Life expectancy, years of schooling, etc.
+
+
+```{r}
+human <- read.table("http://s3.amazonaws.com/assets.datacamp.com/production/course_2218/datasets/human2.txt", sep  =",", header = T)
+```
+
+
+The dataset contains 155 observations and 8 variables. The mean life expectancy according to the observations is 71.65 years, being Japan the country with the highest life expectancy (83.50) and Swaziland the lowest (49 years).
+
+```{r}
+summary(human)
+```
+
+```{r}
+ggpairs(human, lower = list(combo = wrap("facethist", bins = 20)))
+```
+
+
+Regarding the possible relationships between the variables and their **distributions**, none of the variables seem to strictly follow a normal distribution, except *Edu.Exp* (expected years of schooling). According to the *Pearson correlation coefficient* shown in the plot, there are highly significant correlations between many variables, i.e:
+
+Life expectancy and Edu.Exp (+), 
+Life expectancy and GNI (+), 
+Life expectancy and Mat.Mor (-), 
+Expected years of schooling and Ado.Birth (-).
+
+
+The following **correlation plot** also shows the correlations between variables. 
+
+```{r}
+cor_matrix<-cor(human) %>% round(digits=2)
+corrplot(cor_matrix, method="circle")
+```
+
+**Principal Component Analysis** is a dimensionality reduction technique used to find the most important components in our data, this is the possible dimensions in which our variables interact. 
+
+```{r}
+pca_human <- prcomp(human)
+summary(pca_human)
+```
+
+The summary of the PCA shows that the first component *PC1* captures about 99% of the variability. 
+
+
+```{r}
+biplot(pca_human, choices = 1:2, cex = c(0.8, 1), col = c("grey40", "deeppink2"))
+```
+
+
+It is quite difficult to interpret the prior graph. To perform PCA the dataset should be scaled.
+
+```{r}
+human_std <- scale(human)
+pca_humanstd <- prcomp(human_std)
+summary(pca_humanstd)
+
+```
+
+Once standarized, the new PCA shows that the first component *PC1* captures about 53% of the variability, whereas the second component *PC2* captures around 16%. 
+
+
+```{r}
+s <- summary(pca_humanstd)
+pca_pr <- round(100*s$importance[2, ], digits = 1)
+pc_lab <- paste0(names(pca_pr), " (", pca_pr, "%)")
+biplot(pca_humanstd, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab = pc_lab[1], ylab = pc_lab[2])
+```
+
+The PCA results are different when using the raw dataset and the standarized one. The angles between variables represent the **correlations**, smaller angles reveal high correlations. For example, in the PCA biplot with the standarized dataset there is a strong correlation between the variables *Labo.FM* and *Parli.F*, and same happens with *Mat.Mor* and *Ado.Birth*. In the biplot produced with the unstandarized dataset only one arrow is visible, what makes it complicated to show any correlation. Arrows pointing in opposite directions indicate negative correlation, whereas if the arrows of two variables point in the same direction, those variables are positively correlated. In addition, according to the second biplot, the variables related to Education, are the ones contributing the most to the PC2.
+
+The length of the arrows represents the standard deviation of the variables. For instance, in our second biplot, the standard deviation of *Mat.Mo* is higher than the standard deviaiton of *Ado.Birth* and *Parli.F*.
+
+The PCA results can also be represented using different packages. For example, following there are the Eigen values plot and the PC1 vs PC2 plot created using the *factoextra* package.
+
+
+```{r}
+fviz_eig(pca_humanstd)
+fviz_pca_ind(pca_humanstd,
+               col.ind = "cos2",
+               gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+               repel = TRUE
+  )
+fviz_pca_var(pca_humanstd,
+             col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE
+             )
+
+```
+
+
+The first plot shows the percentage of variance explained by each component, being the PC1 the one explaining more variance. If we were to use these PCs for modeling purposes, we would consider to remove the last ones, as those do not account for a lot of variance.
+
+In the second plot, observations grouped together are more similar. Fo example, we can see that many of the Nordic and European countries are grouped together in the left upper corner because they share similar features (variables). Same happens with many African countries, which are located together in the right upper corner. The colors are the quality of representation in the PCs. 
+The last plot, shows with colours the contribution of each variable to the PC. According to the plot, *Mat.Mor*, *Life.Exp* and *Edu.Exp* contribute the most to the PCs.
+
+
+
+**Multiple Correspondence Analysis** is another dimensionality reduction technique, which is applied when we want to analyze the dimensions using categorical variables.
+
+The new *tea data* contains 300 observations and 36 variables, many of them factors or categorical.
+
+```{r}
+data(tea)
+dim(tea)
+str(tea)
+```
+
+Let´s tidy first our data:
+
+```{r}
+keep_columns <- c("Tea", "How", "how", "sugar", "where", "lunch")
+tea_time <- select(tea, one_of(keep_columns))
+gather(tea_time) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar() + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
+  
+```
+
+
+After this, we can proceed with the **MCA**.
+
+```{r}
+mca <- MCA(tea_time, graph = FALSE)
+summary(mca)
+```
+
+The **Eigenvalues** are the proportion of variances retained by the dimensions. In our case, with the first four dimensions we can already explain more than 51% of the variance.
+
+
+```{r}
+plot(mca, invisible=c("ind"), habillage = "quali")
+```
+
+We can use the same package as previously to plot the contribution of each variable to define the dimensions of the mca, as well as the Eigenvalues plot.
+
+```{r}
+fviz_mca_var(mca, col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"), 
+             repel = TRUE,
+             ggtheme = theme_minimal()
+             )
+fviz_screeplot(mca, addlabels = TRUE, ylim = c(0, 45))
+```
+
+In this case, *tea shop*, *unpackaged* and *chain store+tea shop* contribute the most to define the dimensions. 
+According to the second plot, the first and second dimensions explain around 15% and 14% of the variance, with a small difference between them.
+
+
+
