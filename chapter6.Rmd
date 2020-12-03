@@ -22,8 +22,8 @@ In exercise 6 we are using two different datasets, named BPRS and RATS. Both dat
 
 
 ```{r}
-BPRSL <- read.csv("BPRSL.csv")
-RATSL <- read.csv("RATSL.csv")
+BPRSL <- read.csv("./data/BPRSL.csv")
+RATSL <- read.csv("./data/RATSL.csv")
 ```
 
 We will start with the **RATS dataset** in long format, implementing the **analyses of chapter 8** in MABS.
