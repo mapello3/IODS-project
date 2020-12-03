@@ -1,0 +1,186 @@
+---
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+# Analysis of longitudinal data
+
+
+First, let´s load the packages used for the exercise.
+
+```{r}
+library(ggplot2)  
+library(dplyr)
+library(tidyr)
+library(tidyverse)
+library(lme4)
+```
+
+
+In exercise 6 we are using two different datasets, named BPRS and RATS. Both datasets contain repeated measures of different variables in the same subjects during consecutive weeks/days. The variables are related to clinical trials for psychiatric treatments (BPRS) and body weight of rats on different diets for a nutrition study (RATS).
+
+
+```{r}
+BPRSL <- read.csv("BPRSL.csv")
+RATSL <- read.csv("RATSL.csv")
+```
+
+We will start with the **RATS dataset** in long format, implementing the **analyses of chapter 8** in MABS.
+
+```{r}
+RATSL$ID <- factor(RATSL$ID)
+RATSL$Group <- factor(RATSL$Group)
+summary(RATSL)
+```
+```{r}
+  ggplot(RATSL, aes(x = Time, y = bprs, group = ID)) +
+    geom_line()
+```
+
+
+The individuals are divided according to which diet group they belong to. It seems that individuals on diet group 1 have a much lower bprs, whereas between groups 2 and 3 the difference in bprs is less pronounced. In all the groups, bprs seems to slightly decrease at the end of the treatment (diet).
+
+
+```{r}
+  ggplot(RATSL, aes(x = Time, y = bprs, linetype = ID)) +
+    geom_line() +
+    scale_linetype_manual(values = rep(1:10, times=4)) +
+    facet_grid(. ~ Group, labeller = label_both) +
+    theme(legend.position = "none") + 
+    scale_y_continuous(limits = c(min(RATSL$bprs), max(RATSL$bprs)))
+```
+  
+```{r}
+  RATSL2 <- RATSL %>%
+    group_by(Time) %>%
+    mutate(stdbprs = (bprs - mean(bprs))/sd(bprs)) %>%
+    ungroup()
+  
+  ggplot(RATSL2, aes(x = Time, y = stdbprs, linetype = ID)) +
+    geom_line() +
+    scale_linetype_manual(values = rep(1:10, times=4)) +
+    facet_grid(. ~ Group, labeller = label_both) +
+    scale_y_continuous(name = "standardized bprs")
+```
+
+The bprs values change after **standardizing** them. Surprisingly, the new plots reveal that in some cases the bprs increases instead of decreasing at the end of the treatment or diet (i.e. individual 1 in group 1).
+
+
+In the following plot, the repeated measurements for each individual have been transformed into a single value using the **summary measure method**. The plot shows the mean response of the subjects under the three different diets, as well as the standard errors of those means.
+
+
+```{r}
+n <- RATSL$Time %>% unique() %>% length()
+  
+  RATSS <- RATSL %>%
+    group_by(Group, Time) %>%
+    summarise(mean = mean(bprs), se = sd(bprs)/sqrt(n)) %>%
+    ungroup()
+  
+  ggplot(RATSS, aes(x = Time, y = mean, linetype = Group, shape = Group)) +
+    geom_line() +
+    scale_linetype_manual(values = c(1,2,3)) +
+    geom_point(size=3) +
+    scale_shape_manual(values = c(1,2,3)) +
+    geom_errorbar(aes(ymin=mean-se, ymax=mean+se, linetype="1"), width=0.3) +
+    theme(legend.position = c(0.9,0.35)) +
+    scale_y_continuous(name = "mean(bprs) +/- se(bprs)")
+
+```
+
+
+The **difference between the groups** also appears in this plot, where the standard errors of the means do not overlap in any of the cases. This leads to think that **there are differences in the response** (bprs variable) of the subjects according to their diet groups.
+
+
+```{r}
+  RATSS8S <- RATSL %>%
+    group_by(Group, ID) %>%
+    summarise(mean = mean(bprs)) %>%
+    ungroup()
+  
+  ggplot(RATSS8S, aes(x = Group, y = mean)) +
+    geom_boxplot() +
+    stat_summary(fun.y = "mean", geom = "point", shape=23, size=4, fill = "white") +
+    scale_y_continuous(name = "mean(bprs)")
+
+```
+
+The previous boxplot shows the mean values of bprs for each one of the diet groups, as well as the data quartiles. It is possible to observe the presence of **outliers** (marked with a dot in the plot) in all the groups.
+
+
+Regarding the **t.test** applied in the chapter 8 of the book, it is not possible to perform it in the RATS dataset, as the levels of the variable Groups are > 2. In this case an ANOVA would be more appropriate. In addition, there is no pre-treatment level in the dataset, so no baseline for the comparison of variances and means.
+
+
+
+Now let´s move to the analyses in **chapter 9** of the book. For those, we will use the **BPRS dataset** in the long form. First, wee need to convert to factor some of the variables.
+
+```{r}
+BPRSL <- read.csv("BPRSL.csv")
+  
+BPRSL$treatment <- factor(BPRSL$treatment)
+BPRSL$subject <- factor(BPRSL$subject)
+```
+
+
+Once the variables are transformed, we can fit a linear regression model to check which variables help to explain the variance of *bprs*. According to the fitted model, *week* is significant but *treatment2* is not. The variables explain about 18% of the variance of *bprs*.
+
+
+```{r}
+BPRSL_lm <- lm(bprs ~ week + treatment, data = BPRSL)
+  summary(BPRSL_lm)
+```
+
+
+After this, we can proceed to fit a **linear mixed effects models**. In this model, we include the random effects term, allowing the linear regression fit for each subject to differ in intercept from other subjects. In our model, the response variable is *bprs* and the independent variables are *week* and *treatment*. 
+
+```{r}
+  BPRSL_ref <- lmer(bprs ~ week + treatment + (1 | subject), data = BPRSL, REML = FALSE)
+  summary(BPRSL_ref)
+```
+
+
+Next is to fit a **random intercept and random slope model**. This allows the the linear regression fit to differ not only in intercept for each subject but also in slope. Therefore, the model accounts for the individual differences in the subjects profiles and the effect of passing weeks.
+
+
+```{r}
+BPRSL_ref1 <- lmer(bprs ~ week + treatment + (week | subject), data = BPRSL, REML = FALSE)
+  summary(BPRSL_ref1)
+```
+
+The following **ANOVA** tell us that there is a significant difference using a 0.01 confidence value, with a p-value equal to 0.02636. This means that the second model, considering also random slope, has a better fit than the first one. Usually, we would aim for higher confidence levels, but there is still a slightly significant difference.
+
+
+```{r}
+anova(BPRSL_ref1, BPRSL_ref)
+```
+
+In this model we can also include **interactions**. Following there is a new model which considers the interaction between *week* and *treatment*.
+
+
+```{r}
+BPRSL_ref2 <- lmer(bprs ~ week + treatment + (week | subject) + week*treatment, data = BPRSL, REML = FALSE)
+  summary(BPRSL_ref2)  
+```
+
+Again, we can compare with and **ANOVA** if the model has improved after including the interaction.
+
+```{r}
+anova(BPRSL_ref2, BPRSL_ref1)
+```
+According to the ANOVA, there is no significant improvement (p-value = 0.07495) when the interaction term is included.
+We can add the fitted values to our dataset and plot them against the observed bprs values. In the next plot, the values represent the two different treatment groups.
+
+```{r}
+BPRSL$fitted <- fitted(BPRSL_ref2)
+    plot(BPRSL$bprs, BPRSL$fitted, xlab="Observed bprs", ylab="Modeled bprs", col = BPRSL$treatment)
+```
+
+Unfortunately, I was not able to produce the two separate plots comparing observed vs fitted values, as there was a problem with setting the linetype aesthetics in ggplot. So I decided to plot the values using Rbase.
+
+
+
+
+
+
+
